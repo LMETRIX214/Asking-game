@@ -1,0 +1,295 @@
+<!--
+    @version 1.0
+    @author LMETRIX214 <https://linktr.ee/lmetrix214>
+    @exclusive use for COLEGIO LEONA VICARIO
+    @subject For teachers
+    @date July 13, 2023
+    @description Game of questions, where it contains 3 answers, one correct and two incorrect with a timer of 30 seconds to change the question.
+-->
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preguntas</title>
+    <style>
+        /* Estilos CSS para la apariencia de la página */
+        :root {
+            --contenedor: #ccc;
+            --contenido: #f0f0f0;
+            --correcta: #008000;
+            --incorrecta: #ff0000;
+            --blanco: #fff;
+            --negro: #000;
+            --sombra: rgba(0, 0, 0, 0.3);
+            --puntaje_fondo: rgba(0, 0, 0, 0.8);
+            --cambio: #1b1b1b;
+            --fondo: #141414;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            /*user-select: none; /*NO U.S.*/
+            background-color: var(--cambio);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        #contenedor-pregunta {
+            max-width: 500px;
+            margin: 150px auto;
+            padding: 20px;
+            border: 1px solid var(--contenedor);
+            border-radius: 5px;
+        }
+
+        #pregunta {
+            margin-top: 0;
+            color: var(--blanco);
+        }
+
+        #opciones {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .opcion {
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: var(--contenido);
+            border-radius: 5px;
+        }
+
+        /*DUMMY*/
+        /* .opcion:hover {
+            background-color: #e0e0e0;
+        } */
+
+        .correcta {
+            background-color: var(--correcta);
+            color: var(--blanco);
+        }
+
+        .incorrecta {
+            background-color: var(--incorrecta);
+            color: var(--blanco);
+        }
+
+        #tiempo-restante {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+            color: var(--blanco);
+        }
+
+        #contenedor-puntaje {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--puntaje_fondo);
+            color: var(--blanco);
+            font-size: 48px;
+            text-align: center;
+            padding-top: 200px;
+            z-index: 9999;
+        }
+
+        #mostrar-puntaje {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--negro);
+            color: var(--blanco);
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0px 2px 4px var(--sombra);
+            transition: background-color 0.3s;
+        }
+
+        #mostrar-puntaje:hover {
+            background-color: var(--cambio);
+        }
+
+        #cerrar-puntaje {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: var(--blanco);
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="contenedor-pregunta">
+        <h2 id="pregunta"></h2>
+        <ul id="opciones">
+            <li class="opcion"></li>
+            <li class="opcion"></li>
+            <li class="opcion"></li>
+        </ul>
+    </div>
+
+    <div id="tiempo-restante"></div>
+
+    <button id="mostrar-puntaje" onclick="mostrarPuntaje()">Mostrar puntaje</button>
+
+    <div id="contenedor-puntaje">
+        <span id="cerrar-puntaje" onclick="recargarPagina()">X</span>
+        <h3>Puntaje: <span id="puntaje">0</span></h3>
+    </div>
+
+    <script>
+        // Definición de las preguntas y respuestas
+        var preguntas = [
+            { pregunta: "¿Cómo se escribe el número cincuenta y cinco mil quinientos cincuenta y cinco?", opciones: ["A) 50555", "B) 55555", "C) 55550"], respuestaCorrecta: "B) 55555" },
+            { pregunta: "Juan tenía $5.00, compró un chocolate que cuesta $7.00 y quedó a deber el dinero que faltaba. ¿Cuál cantidad representa el número de pesos que quedó a deber?", opciones: ["A) 12", "B) 2", "C) -2"], respuestaCorrecta: "C) -2" },
+            { pregunta: "Selecciona la lista en la cual están ordenados del mayor al menor los siguientes números decimales: 0.5, 0.55, 0.05, 0.055, 5", opciones: ["A) 0.05, 0.055, 0.5, 0.55, 5", "B) 5,0.55, 0.5, 0.055, 0.05", "C) 5,0.05, 0.5, 0.55, 0.055"], respuestaCorrecta: "B) 5,0.55, 0.5, 0.055, 0.05" },
+            { pregunta: "¿Cuál es el resultado de restar 345.023 a 425.45?", opciones: ["770.473", "770.068", "80.427"], respuestaCorrecta: "80.427" },
+            { pregunta: "Se sumaron dos números: uno desconocido y 34567. El resultado es 41 456. ¿Cuál es el número desconocido?", opciones: ["A) 76113", "B) 6889", "C) 68889"], respuestaCorrecta: "B) 6889" },
+            { pregunta: "Las edades en años de 10 personas son las siguientes: 10, 11, 14, 11, 15, 12, 12, 11,13, 14. ¿Cuál es la moda de los datos?", opciones: ["A) 12.5", "B) 12", "C) 11"], respuestaCorrecta: "C) 11" },
+            { pregunta: "Determina mentalmente la suma de 45.14 y 14.45", opciones: ["95.95", "59.59", "30.69"], respuestaCorrecta: "59.59" },
+            { pregunta: "El peso de 10 personas en kilogramos es: 45, 30, 50, 40, 65, 40, 45, 60, 65, 40. ¿Cuál es la media?", opciones: ["A) 40 kg", "B) 48 kg", "C) 45 kg"], respuestaCorrecta: "B) 48 kg" },
+            { pregunta: "¿Cuál es el resultado de multiplicar 45 por 0.655?", opciones: ["29.475", "68.702", "74.475"], respuestaCorrecta: "29.475" },
+            { pregunta: "Un listón de 7 m de largo se repartirá en tramos de 0.25 m para elaborar una manualidad. ¿Cuántos segmentos se pueden obtener?", opciones: ["A) 4 segmentos", "B) 25 segmentos", "C) 28 segmentos"], respuestaCorrecta: "C) 28 segmentos" },
+            { pregunta: "Elige la afirmación verdadera", opciones: ["A) La reseña solo puede ser escrita por un crítico de obras artísticas", "B) La reseña siempre incluye una opinión acerca de la obra citada", "C) La reseña se escribe en tercera persona del plural"], respuestaCorrecta: "B) La reseña siempre incluye una opinión acerca de la obra citada" },
+            { pregunta: "¿Qué es una reseña?", opciones: ["A) La historia de un personaje que se enfrenta a distintas situaciones", "B) Un texto que sirve para solicitar la solución a un problema", "C) Un texto en que se describe y evalúa una obra artística"], respuestaCorrecta: "C) Un texto en que se describe y evalúa una obra artística" },
+            { pregunta: "¿Qué caracteriza a un personaje antagonista?", opciones: ["A) Es aliado del protagonista", "B) Se opone al protagonista", "C) Cumple un papel secundario"], respuestaCorrecta: "B) Se opone al protagonista" },
+            { pregunta: "El nudo en una narración es...", opciones: ["A) Cuando se presenta la historia y a los personajes", "B) El momento del conflicto", "C) Cuando se resuelve el conflicto"], respuestaCorrecta: "B) El momento del conflicto" },
+            { pregunta: "¿Quién es el narrador en un cuento?", opciones: ["A) Quien cuenta la historia", "B) Quien escribió la historia", "C) Quien resuelve el conflicto"], respuestaCorrecta: "A) Quien cuenta la historia" },
+            { pregunta: "Las convocatorias se caracterizan por...", opciones: ["A) Explicar un tema de manera gráfica", "B) Contar una historia ficticia", "C) Invitar a participar en una actividad"], respuestaCorrecta: "C) Invitar a participar en una actividad" },
+            { pregunta: "¿Qué son las bases en una convocatoria?", opciones: ["A) Las especificaciones para participar", "B) Informar acerca de un suceso noticioso de importancia", "C) Las personas que ayudan en el evento"], respuestaCorrecta: "A) Las especificaciones para participar" },
+            { pregunta: "¿Cuál es la función de un reglamento?", opciones: ["A) Narrar una historia ficticia", "B) Regular la vida en sociedad", "C) Indicar los pasos para elaborar algo"], respuestaCorrecta: "B) Regular la vida en sociedad" },
+            { pregunta: "Tipo de texto que indica lo que está permitido y prohibido en un lugar", opciones: ["A) Recetario", "B) Instructivo", "C) Reglamento"], respuestaCorrecta: "C) Reglamento" },
+            { pregunta: " ¿Cuál es la función de los periódicos?", opciones: ["A) Recopilar canciones", "B) Presentar notas informativas", "C) Tratar sucesos imaginarios"], respuestaCorrecta: "B) Presentar notas informativas" }
+        ];
+
+        // Función para obtener un índice aleatorio dentro de un rango máximo
+        function obtenerIndiceAleatorio(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        // Función para mezclar las preguntas en el arreglo
+        function mezclarPreguntas() {
+            for (let i = preguntas.length - 1; i > 0; i--) {
+                const j = obtenerIndiceAleatorio(i + 1);
+                [preguntas[i], preguntas[j]] = [preguntas[j], preguntas[i]];
+            }
+        }
+
+        // Obtención de elementos del DOM
+        const elementoPregunta = document.getElementById("pregunta");
+        const opciones = document.getElementsByClassName("opcion");
+        const puntajeElemento = document.getElementById("puntaje");
+        const tiempoRestanteElemento = document.getElementById("tiempo-restante");
+        const contenedorPuntaje = document.getElementById("contenedor-puntaje");
+        const mostrarPuntajeButton = document.getElementById("mostrar-puntaje");
+
+        let indicePreguntaActual = 0;
+        let puntaje = 0;
+        let tiempoRestante = 30; /*Tiempo*/
+        let temporizador;
+
+        // Función para mostrar una pregunta en el DOM
+        function mostrarPregunta() {
+            const preguntaActual = preguntas[indicePreguntaActual];
+            elementoPregunta.textContent = preguntaActual.pregunta;
+            for (let i = 0; i < opciones.length; i++) {
+                opciones[i].textContent = preguntaActual.opciones[i];
+                opciones[i].classList.remove("correcta", "incorrecta");
+                opciones[i].addEventListener("click", manejadorClicOpcion);
+            }
+
+            tiempoRestante = 30; /*Tiempo*/
+            tiempoRestanteElemento.textContent = tiempoRestante + " segundos";
+            iniciarTemporizador();
+        }
+
+        // Función para verificar la respuesta seleccionada por el usuario
+        function verificarRespuesta(opcionSeleccionada) {
+            const preguntaActual = preguntas[indicePreguntaActual];
+            if (opcionSeleccionada.textContent === preguntaActual.respuestaCorrecta) {
+                opcionSeleccionada.classList.add("correcta");
+                puntaje += 1;
+            } else {
+                opcionSeleccionada.classList.add("incorrecta");
+            }
+
+            puntajeElemento.textContent = puntaje;
+
+            for (let i = 0; i < opciones.length; i++) {
+                opciones[i].removeEventListener("click", manejadorClicOpcion);
+            }
+
+            indicePreguntaActual++;
+
+            if (indicePreguntaActual < preguntas.length) {
+                setTimeout(mostrarPregunta, 1000);
+            } else {
+                mezclarPreguntas();
+                indicePreguntaActual = 0;
+                setTimeout(mostrarPregunta, 1000);
+            }
+        }
+
+        // Función para manejar el evento de clic en una opción
+        function manejadorClicOpcion() {
+            verificarRespuesta(this);
+        }
+
+        // Función para actualizar el tiempo restante en el contador
+        function actualizarTiempoRestante() {
+            tiempoRestante--;
+            tiempoRestanteElemento.textContent = tiempoRestante + " segundos";
+            if (tiempoRestante === 0) {
+                mezclarPreguntas();
+                indicePreguntaActual = 0;
+                mostrarPregunta();
+            }
+            if (tiempoRestante === 0) {
+                mezclarPreguntas();
+                indicePreguntaActual = 0;
+                mostrarPregunta();
+            }
+        }
+
+        // Función para iniciar el temporizador
+        function iniciarTemporizador() {
+            if (temporizador) {
+                clearInterval(temporizador);
+            }
+            temporizador = setInterval(actualizarTiempoRestante, 1000);
+        }
+
+        // Función para mostrar el puntaje al finalizar el cuestionario
+        function mostrarPuntaje() {
+            contenedorPuntaje.style.display = "block";
+            mostrarPuntajeButton.style.display = "none";
+            document.getElementById("cerrar-puntaje").style.display = "inline-block";
+        }
+
+        // Función para recargar la página
+        function recargarPagina() {
+            location.reload();
+        }
+
+        // Mezclar las preguntas al iniciar el programa
+        mezclarPreguntas();
+        mostrarPregunta();
+    </script>
+</body>
+
+</html>
